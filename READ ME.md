@@ -11,7 +11,7 @@ The goal of this project is to build a .NET Web API to process Call Data Records
 ### 1. API Structure
 #### NOTE: I have changed the names at the end to make it better looking at Swagger
 1. Created the following endpoints: 
-
+ 
    ## NOTE: I have changed all the names at the end to make it better looking at Swagger
  A. CRD
    - `GET /api/cdr/`: Retrieve all CDRs
