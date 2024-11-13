@@ -9,7 +9,7 @@ The goal of this project is to build a .NET Web API to process Call Data Records
 ## Approach
 
 ### 1. API Structure
-#### NOTE: I have changed the names at the end to make it better looking at Swagger
+#### NOTE:  names have changed in the project.
 1. Created the following endpoints: 
  
    ## NOTE: I have changed all the names at the end to make it better looking at Swagger
@@ -65,5 +65,5 @@ The goal of this project is to build a .NET Web API to process Call Data Records
 ## Optional Extensions
 1. In Progress:   To implement rate limiting based on the API key to prevent abuse.
 2. In Progress:   To Create an admin endpoint to manage (create/revoke) API keys.
-3. Simi finished: To add logging using Serilog.
+3. Done: To add logging using Serilog.
 
