@@ -1,8 +1,15 @@
 using CDRProcessingAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models; // for the auth
 using Serilog;
+
+using System.Reflection; // Added for XML comments
+using System.IO; // Added for XML comments
+
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -30,22 +37,24 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddSwaggerGen(); // Add SwaggerGen service
 
-builder.Services.AddSwaggerGen(options => // Add SwaggerGen service and the auth ui
+builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "CDR Processing API", Version = "v1" });
 
-    // Define API Key Authorization for Swagger
-    options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme // Defines the API key as a required header parameter in Swagger
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
+
+    options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
     {
-        Description = "API Key needed to access the endpoints. API Key must be in the header with the key 'x-api-key'.",
+        Description = "API Key needed to access the endpoints. Add it in the 'x-api-key' header.",
         In = ParameterLocation.Header,
         Name = "x-api-key",
         Type = SecuritySchemeType.ApiKey,
         Scheme = "ApiKeyScheme"
     });
 
-    // Add a global requirement for the API key in Swagger
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement // Ensures that the API key is required for each request in the Swagger UI.
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme

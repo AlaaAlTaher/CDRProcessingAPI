@@ -1,56 +1,68 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using CDRProcessingAPI.Data;
 using CDRProcessingAPI.Models;
-using Microsoft.EntityFrameworkCore;
-
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
-[Route("api/[controller]")]
-[ApiController]
-public class UserController : ControllerBase
+namespace CDRProcessingAPI.Controllers
 {
-    private readonly CDRDbContext _context;
-
-    public UserController(CDRDbContext context)
+    [Route("api/users")]
+    [ApiController]
+    public class UserController : ControllerBase
     {
-        _context = context;
-    }
+        private readonly CDRDbContext _context;
+        private readonly ILogger<UserController> _logger;
 
-    // POST: api/User    for creating users
-    [HttpPost("Ceate User")]
-    public async Task<ActionResult<object>> CreateUser(User user)
-    {
-        // Check if MSISDN is unique
-        if (await _context.Users.AnyAsync(u => u.MSISDN == user.MSISDN))
+        public UserController(CDRDbContext context, ILogger<UserController> logger)
         {
-            return BadRequest("MSISDN must be unique. This MSISDN already exists.");
+            _context = context;
+            _logger = logger;
         }
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(CreateUser), new { id = user.Id }, new
+        /// <summary>
+        /// Retrieve all users without their IDs.
+        /// </summary>
+        /// <returns>A list of users without their IDs.</returns>
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<object>>> GetAllUsers()
         {
-            Name = user.Name,
-            MSISDN = user.MSISDN
-        });
-    }
+            _logger.LogInformation("Retrieving all users without IDs.");
+            var users = await _context.Users
+                .Select(u => new
+                {
+                    Name = u.Name,
+                    MSISDN = u.MSISDN
+                })
+                .ToListAsync();
+            return Ok(users);
+        }
 
+        /// <summary>
+        /// Create a new user.
+        /// </summary>
+        /// <param name="user">The user to create.</param>
+        /// <returns>Created user without ID.</returns>
+        [HttpPost]
+        public async Task<ActionResult<object>> CreateUser(User user)
+        {
+            _logger.LogInformation("Attempting to create a new user with MSISDN: {MSISDN}", user.MSISDN);
 
-
-    // getting all users info 
-    [HttpGet("Get All Users")]
-    public async Task<ActionResult<IEnumerable<object>>> GetAllUsers()
-    {
-        var users = await _context.Users
-            .Select(u => new
+            if (await _context.Users.AnyAsync(u => u.MSISDN == user.MSISDN))
             {
-                Name = u.Name,
-                MSISDN = u.MSISDN
-            })
-            .ToListAsync();
+                _logger.LogWarning("User creation failed. MSISDN {MSISDN} already exists.", user.MSISDN);
+                return BadRequest("MSISDN must be unique. This MSISDN already exists.");
+            }
 
-        return Ok(users);
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User created successfully with MSISDN: {MSISDN}", user.MSISDN);
+            return CreatedAtAction(nameof(CreateUser), new { id = user.Id }, new
+            {
+                Name = user.Name,
+                MSISDN = user.MSISDN
+            });
+        }
     }
-
 }
